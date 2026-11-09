@@ -6,22 +6,27 @@ export default {
       try {
         const { username, turnstileToken } = await request.json();
 
-        // 1. Validate Turnstile Token
-        const turnstileFormData = new FormData();
-        turnstileFormData.append('secret', env.TURNSTILE_SECRET_KEY);
-        turnstileFormData.append('response', turnstileToken);
+        // Check if the environment variable is actually loading
+        if (!env.TURNSTILE_SECRET_KEY) {
+            throw new Error("Environment variable TURNSTILE_SECRET_KEY is missing.");
+        }
+
+        // 1. Validate Turnstile Token (Using URLSearchParams instead of FormData)
+        const turnstileData = new URLSearchParams();
+        turnstileData.append('secret', env.TURNSTILE_SECRET_KEY);
+        turnstileData.append('response', turnstileToken);
 
         const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
           method: 'POST',
-          body: turnstileFormData
+          body: turnstileData // URLSearchParams automatically sets the correct Content-Type
         });
-        const turnstileData = await turnstileResponse.json();
+        
+        const turnstileResult = await turnstileResponse.json();
 
-        if (!turnstileData.success) {
-          // Pass the exact Turnstile error codes
+        if (!turnstileResult.success) {
           return new Response(JSON.stringify({ 
             success: false, 
-            message: `Turnstile Error: ${JSON.stringify(turnstileData['error-codes'] || 'Unknown')}` 
+            message: `Turnstile Error: ${JSON.stringify(turnstileResult['error-codes'] || 'Unknown')}` 
           }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
@@ -36,8 +41,7 @@ export default {
           subject: `New Server Verification: ${username}`,
           htmlBody: `
             <h3>New Verification Request</h3>
-            <p>User <strong>${username}</strong> has successfully passed the Turnstile check on serververify.de5.net/vesper.</p>
-            <p>They are awaiting your review in the server.</p>
+            <p>User <strong>${username}</strong> has successfully passed the Turnstile check.</p>
           `
         });
 
@@ -60,11 +64,9 @@ export default {
             try {
                 const emailResult = JSON.parse(finalResponseText);
                 if (!emailResult.success) {
-                    // This will pass the exact error from Google Apps Script to your screen
                     throw new Error(emailResult.error || "Apps Script returned success: false");
                 }
             } catch (e) {
-                 // If it's not JSON, it might be an HTML login page
                  throw new Error("Invalid response from Google. Make sure Apps Script is deployed to 'Anyone'. Response: " + finalResponseText.substring(0, 50));
             }
         } else {
@@ -78,7 +80,6 @@ export default {
         });
 
       } catch (error) {
-        // THIS IS THE MOST IMPORTANT PART - It sends the exact error to the red box
         console.error("Caught error:", error.message);
         return new Response(JSON.stringify({ success: false, message: error.message }), {
           status: 500,
