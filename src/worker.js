@@ -2,12 +2,12 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Handle the API request for verification
     if (url.pathname === "/api/verify" && request.method === "POST") {
       try {
         const { username, turnstileToken } = await request.json();
+        console.log("Received token from frontend:", turnstileToken); // Log incoming token
 
-        // 1. Validate Turnstile Token with Cloudflare
+        // 1. Validate Turnstile Token
         const turnstileFormData = new FormData();
         turnstileFormData.append('secret', env.TURNSTILE_SECRET_KEY);
         turnstileFormData.append('response', turnstileToken);
@@ -17,6 +17,7 @@ export default {
           body: turnstileFormData
         });
         const turnstileData = await turnstileResponse.json();
+        console.log("Turnstile API Response:", JSON.stringify(turnstileData)); // Log Turnstile's full response
 
         if (!turnstileData.success) {
           return new Response(JSON.stringify({ success: false, message: 'Turnstile validation failed' }), {
@@ -25,7 +26,7 @@ export default {
           });
         }
 
-        // 2. Send Email via Resend API
+        // 2. Send Email via Resend
         const emailResponse = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -33,16 +34,16 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: 'Vesper Verify <onboarding@resend.dev>', // Update if you verified a custom domain on Resend
-            to: 'admin@de5.net',
+            from: 'Vesper Verify <onboarding@resend.dev>',
+            to: 'josiah.wilke77@outlook.com','josiah.wilke@huttoisd.org'
             subject: `New Server Verification: ${username}`,
-            html: `<p>User <strong>${username}</strong> has successfully passed the Turnstile check on serververify.de5.net/vesper.</p>`
+            html: `<p>User <strong>${username}</strong> has successfully passed the Turnstile check.</p>`
           })
         });
 
         if (!emailResponse.ok) {
           const errorText = await emailResponse.text();
-          console.error("Resend Error:", errorText);
+          console.error("Resend API Error:", errorText); // Log the exact error from Resend
           throw new Error("Failed to send email");
         }
 
@@ -52,7 +53,7 @@ export default {
         });
 
       } catch (error) {
-        console.error(error);
+        console.error("Caught error:", error.message); // Log any other caught errors
         return new Response(JSON.stringify({ success: false, message: 'Internal server error' }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' }
@@ -60,7 +61,6 @@ export default {
       }
     }
 
-    // Serve static files from the public folder for all other routes
     return env.ASSETS.fetch(request);
   }
 };
