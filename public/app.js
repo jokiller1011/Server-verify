@@ -8,13 +8,20 @@ window.onTurnstileSuccess = function(token) {
 
 document.getElementById('submit-btn').addEventListener('click', async () => {
     const username = document.getElementById('username').value.trim();
+    const errorBox = document.getElementById('error-box');
     
+    // Hide previous errors
+    errorBox.classList.add('hidden');
+    errorBox.innerText = '';
+
     if (!username) {
-        alert("Please enter a username.");
+        errorBox.innerText = "Please enter a username.";
+        errorBox.classList.remove('hidden');
         return;
     }
     if (!turnstileToken) {
-        alert("Please complete the CAPTCHA.");
+        errorBox.innerText = "Please complete the CAPTCHA.";
+        errorBox.classList.remove('hidden');
         return;
     }
 
@@ -36,12 +43,15 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
             document.getElementById('form-step').classList.add('hidden');
             document.getElementById('success-step').classList.remove('hidden');
         } else {
-            alert("Verification failed. Please try again.");
+            // Show the actual error from the backend!
+            errorBox.innerText = data.message || "Unknown error occurred.";
+            errorBox.classList.remove('hidden');
             btn.disabled = false;
             btn.innerText = "Verify";
         }
     } catch (error) {
-        alert("Server error. Please try again later.");
+        errorBox.innerText = "Network Error: " + error.message;
+        errorBox.classList.remove('hidden');
         btn.disabled = false;
         btn.innerText = "Verify";
     }
