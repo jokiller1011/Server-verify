@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vesper Server Verification</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+
+    <!-- Form Step -->
+    <div class="card" id="form-step">
+        <h1>Vesper Verification</h1>
+        <p>Please enter your username to verify.</p>
+        
+        <input type="text" id="username" placeholder="Enter your username" required>
+        
+        <div class="turnstile-container">
+            <!-- Your Site Key -->
+            <div class="cf-turnstile" 
+                 data-sitekey="0x4AAAAAAAF6P9TJo198VHP9q" 
+                 data-callback="onTurnstileSuccess"
+                 data-theme="dark">
+            </div>
+        </div>
+
+        <button id="submit-btn" disabled>Verify</button>
+    </div>
+
+    <!-- Success Step -->
+    <div class="card hidden" id="success-step">
+        <div class="success-text">Your Verified!</div>
+        <p>A server admin will review your verification shortly, then verify you.</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
