@@ -35,7 +35,7 @@ export default {
           },
           body: JSON.stringify({
             from: 'Vesper Verify <onboarding@resend.dev>',
-            to: 'josiah.wilke77@outlook.com','josiah.wilke@huttoisd.org'
+            to: 'josiah.wilke77@outlook.com','josiah.wilke@huttoisd.org',
             subject: `New Server Verification: ${username}`,
             html: `<p>User <strong>${username}</strong> has successfully passed the Turnstile check.</p>`
           })
