@@ -65,3 +65,18 @@ button:hover:not(:disabled) { background-color: #2563eb; }
     font-size: 1.2rem;
     margin-bottom: 1rem;
 }
+
+/* NEW ERROR BOX STYLES */
+.error-box {
+    color: #ef4444; /* red */
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    text-align: left;
+    word-break: break-word;
+    max-height: 150px;
+    overflow-y: auto;
+}
