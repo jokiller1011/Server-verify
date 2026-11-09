@@ -26,25 +26,30 @@ export default {
           });
         }
 
-        // 2. Send Email via Resend
-        const emailResponse = await fetch('https://api.resend.com/emails', {
+        // 2. Send Email via Google Apps Script
+        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
+        
+        const emailPayload = {
+          to: 'josiah.wilke@huttoisd.org',
+          subject: `New Server Verification: ${username}`,
+          htmlBody: `
+            <h3>New Verification Request</h3>
+            <p>User <strong>${username}</strong> has successfully passed the Turnstile check on serververify.de5.net/vesper.</p>
+            <p>They are awaiting your review in the server.</p>
+          `
+        };
+
+        const emailResponse = await fetch(appsScriptUrl, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: 'Vesper Verify <onboarding@resend.dev>',
-            to: ['josiah.wilke77@outlook.com', 'josiah.wilke@huttoisd.org'], // <-- FIXED HERE (Added brackets)
-            subject: `New Server Verification: ${username}`,
-            html: `<p>User <strong>${username}</strong> has successfully passed the Turnstile check.</p>`
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(emailPayload)
         });
 
-        if (!emailResponse.ok) {
-          const errorText = await emailResponse.text();
-          console.error("Resend API Error:", errorText);
-          throw new Error("Failed to send email");
+        const emailResult = await emailResponse.json();
+        console.log("Apps Script Response:", emailResult);
+
+        if (!emailResult.success) {
+          throw new Error(emailResult.error || "Failed to send email via Apps Script");
         }
 
         return new Response(JSON.stringify({ success: true }), {
