@@ -4,40 +4,18 @@ export default {
 
     if (url.pathname === "/api/verify" && request.method === "POST") {
       try {
-        const { username, turnstileToken } = await request.json();
+        // We are ignoring the turnstileToken completely here!
+        const { username } = await request.json();
 
-        // 1. Validate Turnstile Token
-        const turnstileData = new URLSearchParams();
-        turnstileData.append('secret', env.TURNSTILE_SECRET_KEY);
-        turnstileData.append('response', turnstileToken);
-
-        const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-          method: 'POST',
-          body: turnstileData 
-        });
-        
-        const turnstileResult = await turnstileResponse.json();
-
-        if (!turnstileResult.success) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            message: `Turnstile Error: ${JSON.stringify(turnstileResult['error-codes'] || 'Unknown')}` 
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-
-        // 2. Send Email via Google Apps Script
+        // Send Email via Google Apps Script
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
         
-        // Send as JSON this time
         const emailPayload = JSON.stringify({
           to: 'josiah.wilke@huttoisd.org',
           subject: `New Server Verification: ${username}`,
           htmlBody: `
             <h3>New Verification Request</h3>
-            <p>User <strong>${username}</strong> has successfully passed the Turnstile check on serververify.de5.net/vesper.</p>
+            <p>User <strong>${username}</strong> has successfully passed the check on serververify.de5.net/vesper.</p>
             <p>They are awaiting your review in the server.</p>
           `
         });
