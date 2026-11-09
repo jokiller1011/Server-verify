@@ -6,19 +6,17 @@ export default {
       try {
         const { username, turnstileToken } = await request.json();
 
-        // Check if the environment variable is actually loading
-        if (!env.TURNSTILE_SECRET_KEY) {
-            throw new Error("Environment variable TURNSTILE_SECRET_KEY is missing.");
-        }
-
-        // 1. Validate Turnstile Token (Using URLSearchParams instead of FormData)
+        // ==========================================
+        // TEMPORARILY DISABLED TURNSTILE VERIFICATION
+        // ==========================================
+        /*
         const turnstileData = new URLSearchParams();
         turnstileData.append('secret', env.TURNSTILE_SECRET_KEY);
         turnstileData.append('response', turnstileToken);
 
         const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
           method: 'POST',
-          body: turnstileData // URLSearchParams automatically sets the correct Content-Type
+          body: turnstileData
         });
         
         const turnstileResult = await turnstileResponse.json();
@@ -32,6 +30,8 @@ export default {
             headers: { 'Content-Type': 'application/json' }
           });
         }
+        */
+        // ==========================================
 
         // 2. Send Email via Google Apps Script
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
@@ -41,7 +41,7 @@ export default {
           subject: `New Server Verification: ${username}`,
           htmlBody: `
             <h3>New Verification Request</h3>
-            <p>User <strong>${username}</strong> has successfully passed the Turnstile check.</p>
+            <p>User <strong>${username}</strong> has successfully passed the check.</p>
           `
         });
 
