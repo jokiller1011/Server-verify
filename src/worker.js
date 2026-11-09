@@ -6,17 +6,14 @@ export default {
       try {
         const { username, turnstileToken } = await request.json();
 
-        // ==========================================
-        // TEMPORARILY DISABLED TURNSTILE VERIFICATION
-        // ==========================================
-        /*
+        // 1. Validate Turnstile Token
         const turnstileData = new URLSearchParams();
         turnstileData.append('secret', env.TURNSTILE_SECRET_KEY);
         turnstileData.append('response', turnstileToken);
 
         const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
           method: 'POST',
-          body: turnstileData
+          body: turnstileData 
         });
         
         const turnstileResult = await turnstileResponse.json();
@@ -30,33 +27,33 @@ export default {
             headers: { 'Content-Type': 'application/json' }
           });
         }
-        */
-        // ==========================================
 
         // 2. Send Email via Google Apps Script
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
         
-        const emailPayload = new URLSearchParams({
+        // Send as JSON this time
+        const emailPayload = JSON.stringify({
           to: 'josiah.wilke@huttoisd.org',
           subject: `New Server Verification: ${username}`,
           htmlBody: `
             <h3>New Verification Request</h3>
-            <p>User <strong>${username}</strong> has successfully passed the check.</p>
+            <p>User <strong>${username}</strong> has successfully passed the Turnstile check on serververify.de5.net/vesper.</p>
+            <p>They are awaiting your review in the server.</p>
           `
         });
 
         const initialResponse = await fetch(appsScriptUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          headers: { 'Content-Type': 'application/json' },
           body: emailPayload,
           redirect: 'manual' 
         });
 
+        // Follow the redirect manually to get the final JSON response from Google
         if (initialResponse.status === 302) {
             const redirectUrl = initialResponse.headers.get('Location');
             const finalResponse = await fetch(redirectUrl, {
-                method: 'GET',
-                redirect: 'manual'
+                method: 'GET'
             });
 
             const finalResponseText = await finalResponse.text();
@@ -64,10 +61,10 @@ export default {
             try {
                 const emailResult = JSON.parse(finalResponseText);
                 if (!emailResult.success) {
-                    throw new Error(emailResult.error || "Apps Script returned success: false");
+                    throw new Error(emailResult.error || "Apps Script returned an error");
                 }
             } catch (e) {
-                 throw new Error("Invalid response from Google. Make sure Apps Script is deployed to 'Anyone'. Response: " + finalResponseText.substring(0, 50));
+                 throw new Error("Invalid response from Google. Response: " + finalResponseText.substring(0, 50));
             }
         } else {
             const errorText = await initialResponse.text();
@@ -80,7 +77,6 @@ export default {
         });
 
       } catch (error) {
-        console.error("Caught error:", error.message);
         return new Response(JSON.stringify({ success: false, message: error.message }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' }
