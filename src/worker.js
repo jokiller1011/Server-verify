@@ -5,7 +5,6 @@ export default {
     if (url.pathname === "/api/verify" && request.method === "POST") {
       try {
         const { username, turnstileToken } = await request.json();
-        console.log("Received token from frontend:", turnstileToken);
 
         // 1. Validate Turnstile Token
         const turnstileFormData = new FormData();
@@ -17,10 +16,13 @@ export default {
           body: turnstileFormData
         });
         const turnstileData = await turnstileResponse.json();
-        console.log("Turnstile API Response:", JSON.stringify(turnstileData));
 
         if (!turnstileData.success) {
-          return new Response(JSON.stringify({ success: false, message: 'Turnstile validation failed' }), {
+          // Pass the exact Turnstile error codes
+          return new Response(JSON.stringify({ 
+            success: false, 
+            message: `Turnstile Error: ${JSON.stringify(turnstileData['error-codes'] || 'Unknown')}` 
+          }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
           });
@@ -39,47 +41,36 @@ export default {
           `
         });
 
-        // --- FIX: First, make the initial POST request with redirect: 'manual' ---
         const initialResponse = await fetch(appsScriptUrl, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/x-www-form-urlencoded' 
-          },
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: emailPayload,
-          redirect: 'manual' // This is the key change
+          redirect: 'manual' 
         });
 
-        // Check if we got the expected 302 redirect
         if (initialResponse.status === 302) {
             const redirectUrl = initialResponse.headers.get('Location');
-            console.log("Following redirect to:", redirectUrl);
-
-            // Make a second, GET request to the redirect URL
             const finalResponse = await fetch(redirectUrl, {
                 method: 'GET',
-                redirect: 'manual' // Also set to manual here to be safe
+                redirect: 'manual'
             });
 
             const finalResponseText = await finalResponse.text();
-            console.log("Final Apps Script Response:", finalResponseText);
-
-            // Try to parse the final response as JSON
+            
             try {
                 const emailResult = JSON.parse(finalResponseText);
                 if (!emailResult.success) {
-                    throw new Error(emailResult.error || "Failed to send email via Apps Script");
+                    // This will pass the exact error from Google Apps Script to your screen
+                    throw new Error(emailResult.error || "Apps Script returned success: false");
                 }
             } catch (e) {
-                 // If parsing fails, the redirect might have returned HTML (e.g., a login page)
-                 throw new Error("Apps Script redirect did not return valid JSON. Response: " + finalResponseText);
+                 // If it's not JSON, it might be an HTML login page
+                 throw new Error("Invalid response from Google. Make sure Apps Script is deployed to 'Anyone'. Response: " + finalResponseText.substring(0, 50));
             }
-
         } else {
-            // If the initial response is not a 302, something else is wrong.
             const errorText = await initialResponse.text();
-            throw new Error(`Expected a 302 redirect but got ${initialResponse.status}. Response: ${errorText}`);
+            throw new Error(`Expected 302 redirect, got ${initialResponse.status}. Response: ${errorText.substring(0, 50)}`);
         }
-        // --- End of fix ---
 
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
@@ -87,8 +78,9 @@ export default {
         });
 
       } catch (error) {
+        // THIS IS THE MOST IMPORTANT PART - It sends the exact error to the red box
         console.error("Caught error:", error.message);
-        return new Response(JSON.stringify({ success: false, message: 'Internal server error: ' + error.message }), {
+        return new Response(JSON.stringify({ success: false, message: error.message }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' }
         });
