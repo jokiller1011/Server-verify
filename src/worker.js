@@ -5,7 +5,7 @@ export default {
     if (url.pathname === "/api/verify" && request.method === "POST") {
       try {
         const { username, turnstileToken } = await request.json();
-        console.log("Received token from frontend:", turnstileToken); // Log incoming token
+        console.log("Received token from frontend:", turnstileToken);
 
         // 1. Validate Turnstile Token
         const turnstileFormData = new FormData();
@@ -17,7 +17,7 @@ export default {
           body: turnstileFormData
         });
         const turnstileData = await turnstileResponse.json();
-        console.log("Turnstile API Response:", JSON.stringify(turnstileData)); // Log Turnstile's full response
+        console.log("Turnstile API Response:", JSON.stringify(turnstileData));
 
         if (!turnstileData.success) {
           return new Response(JSON.stringify({ success: false, message: 'Turnstile validation failed' }), {
@@ -35,7 +35,7 @@ export default {
           },
           body: JSON.stringify({
             from: 'Vesper Verify <onboarding@resend.dev>',
-            to: 'josiah.wilke77@outlook.com','josiah.wilke@huttoisd.org',
+            to: ['josiah.wilke77@outlook.com', 'josiah.wilke@huttoisd.org'], // <-- FIXED HERE (Added brackets)
             subject: `New Server Verification: ${username}`,
             html: `<p>User <strong>${username}</strong> has successfully passed the Turnstile check.</p>`
           })
@@ -43,7 +43,7 @@ export default {
 
         if (!emailResponse.ok) {
           const errorText = await emailResponse.text();
-          console.error("Resend API Error:", errorText); // Log the exact error from Resend
+          console.error("Resend API Error:", errorText);
           throw new Error("Failed to send email");
         }
 
@@ -53,7 +53,7 @@ export default {
         });
 
       } catch (error) {
-        console.error("Caught error:", error.message); // Log any other caught errors
+        console.error("Caught error:", error.message);
         return new Response(JSON.stringify({ success: false, message: 'Internal server error' }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' }
