@@ -29,7 +29,6 @@ export default {
         // 2. Send Email via Google Apps Script
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
         
-        // Use URLSearchParams to send as form-urlencoded
         const emailPayload = new URLSearchParams({
           to: 'josiah.wilke@huttoisd.org',
           subject: `New Server Verification: ${username}`,
@@ -40,28 +39,47 @@ export default {
           `
         });
 
-        const emailResponse = await fetch(appsScriptUrl, {
+        // --- FIX: First, make the initial POST request with redirect: 'manual' ---
+        const initialResponse = await fetch(appsScriptUrl, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/x-www-form-urlencoded' 
           },
-          body: emailPayload
+          body: emailPayload,
+          redirect: 'manual' // This is the key change
         });
 
-        // Read the raw text first for debugging
-        const responseText = await emailResponse.text();
-        console.log("Raw Apps Script Response:", responseText);
+        // Check if we got the expected 302 redirect
+        if (initialResponse.status === 302) {
+            const redirectUrl = initialResponse.headers.get('Location');
+            console.log("Following redirect to:", redirectUrl);
 
-        let emailResult;
-        try {
-            emailResult = JSON.parse(responseText);
-        } catch (e) {
-            throw new Error("Apps Script did not return valid JSON. Raw response: " + responseText);
-        }
+            // Make a second, GET request to the redirect URL
+            const finalResponse = await fetch(redirectUrl, {
+                method: 'GET',
+                redirect: 'manual' // Also set to manual here to be safe
+            });
 
-        if (!emailResult.success) {
-          throw new Error(emailResult.error || "Failed to send email via Apps Script");
+            const finalResponseText = await finalResponse.text();
+            console.log("Final Apps Script Response:", finalResponseText);
+
+            // Try to parse the final response as JSON
+            try {
+                const emailResult = JSON.parse(finalResponseText);
+                if (!emailResult.success) {
+                    throw new Error(emailResult.error || "Failed to send email via Apps Script");
+                }
+            } catch (e) {
+                 // If parsing fails, the redirect might have returned HTML (e.g., a login page)
+                 throw new Error("Apps Script redirect did not return valid JSON. Response: " + finalResponseText);
+            }
+
+        } else {
+            // If the initial response is not a 302, something else is wrong.
+            const errorText = await initialResponse.text();
+            throw new Error(`Expected a 302 redirect but got ${initialResponse.status}. Response: ${errorText}`);
         }
+        // --- End of fix ---
 
         return new Response(JSON.stringify({ success: true }), {
           status: 200,
