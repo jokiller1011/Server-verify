@@ -39,12 +39,13 @@ input {
     box-sizing: border-box;
 }
 input:focus { outline: none; border-color: var(--accent); }
-.turnstile-container {
+.captcha-container {
     display: flex;
     justify-content: center;
     margin-bottom: 1.5rem;
+    min-height: 80px; /* Reserve space for the Cap widget */
 }
-button {
+button#submit-btn {
     width: 100%;
     padding: 12px;
     background-color: var(--accent);
@@ -56,8 +57,8 @@ button {
     cursor: pointer;
     transition: background-color 0.2s;
 }
-button:disabled { background-color: #334155; cursor: not-allowed; }
-button:hover:not(:disabled) { background-color: #2563eb; }
+button#submit-btn:disabled { background-color: #334155; cursor: not-allowed; }
+button#submit-btn:hover:not(:disabled) { background-color: #2563eb; }
 .hidden { display: none !important; }
 .success-text {
     color: #10b981;
@@ -65,10 +66,8 @@ button:hover:not(:disabled) { background-color: #2563eb; }
     font-size: 1.2rem;
     margin-bottom: 1rem;
 }
-
-/* NEW ERROR BOX STYLES */
 .error-box {
-    color: #ef4444; /* red */
+    color: #ef4444;
     background-color: rgba(239, 68, 68, 0.1);
     border: 1px solid #ef4444;
     padding: 10px;
