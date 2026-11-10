@@ -43,8 +43,22 @@ input:focus { outline: none; border-color: var(--accent); }
     display: flex;
     justify-content: center;
     margin-bottom: 1.5rem;
-    min-height: 80px; /* Reserve space for the Cap widget */
+    min-height: 80px;
 }
+
+/* Cap Widget Dark Theme Custom Properties */
+cap-widget {
+    --cap-background: #1e232d;
+    --cap-border-color: #334155;
+    --cap-border-radius: 8px;
+    --cap-color: #e2e8f0;
+    --cap-checkbox-background: #0f1115;
+    --cap-checkbox-border: 1px solid #334155;
+    --cap-checkbox-border-radius: 4px;
+    --cap-spinner-color: #3b82f6;
+    --cap-spinner-background-color: #0f1115;
+}
+
 button#submit-btn {
     width: 100%;
     padding: 12px;
