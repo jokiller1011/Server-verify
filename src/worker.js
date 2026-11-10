@@ -1,11 +1,57 @@
+// Import the REAL Cap core library directly from a CDN
+// This bypasses the need for 'npm install'
+import { generateChallenge, validateChallenge } from 'https://esm.sh/capjs-core';
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // --- Cap Challenge Generation Route ---
+    // The widget calls this to get a challenge to solve
+    if (url.pathname === '/api/cap/challenge' && request.method === 'POST') {
+        try {
+            // Use the secret you will set in Cloudflare
+            const challenge = await generateChallenge(env.CAP_SECRET);
+            return new Response(JSON.stringify(challenge), {
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        }
+    }
+
+    // --- Cap Token Redeem Route ---
+    // The widget calls this to submit its solution
+    if (url.pathname === '/api/cap/redeem' && request.method === 'POST') {
+        try {
+            const { token, solutions } = await request.json();
+            // Validate the solution using your secret
+            const result = await validateChallenge(env.CAP_SECRET, {
+                token,
+                solutions
+            });
+            
+            if (result.success) {
+                // Return the final token that the frontend will send to /api/verify
+                return new Response(JSON.stringify({ success: true, token: result.token }), {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } else {
+                return new Response(JSON.stringify({ success: false, error: result.error || 'Validation failed' }), { status: 400 });
+            }
+        } catch (error) {
+            return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        }
+    }
+
+    // --- Final Verification and Email Route ---
     if (url.pathname === "/api/verify" && request.method === "POST") {
       try {
-        // We are ignoring the turnstileToken completely here!
-        const { username } = await request.json();
+        const { username, capToken } = await request.json();
+
+        if (!capToken) {
+            throw new Error("Missing Cap token. Please complete the CAPTCHA.");
+        }
 
         // Send Email via Google Apps Script
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
@@ -15,7 +61,7 @@ export default {
           subject: `New Server Verification: ${username}`,
           htmlBody: `
             <h3>New Verification Request</h3>
-            <p>User <strong>${username}</strong> has successfully passed the check on serververify.de5.net/vesper.</p>
+            <p>User <strong>${username}</strong> has successfully passed the Cap check on serververify.de5.net/vesper.</p>
             <p>They are awaiting your review in the server.</p>
           `
         });
@@ -30,10 +76,7 @@ export default {
         // Follow the redirect manually to get the final JSON response from Google
         if (initialResponse.status === 302) {
             const redirectUrl = initialResponse.headers.get('Location');
-            const finalResponse = await fetch(redirectUrl, {
-                method: 'GET'
-            });
-
+            const finalResponse = await fetch(redirectUrl, { method: 'GET' });
             const finalResponseText = await finalResponse.text();
             
             try {
