@@ -3,15 +3,8 @@
   "name": "server-verify",
   "main": "src/worker.js",
   "compatibility_date": "2024-11-01",
-  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS"
-  },
-  "build": {
-    "command": "npm install"
-  },
-  "alias": {
-    "capjs-core": "./node_modules/capjs-core/src/index.js"
   }
 }
