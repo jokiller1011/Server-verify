@@ -4,6 +4,6 @@
   "description": "Vesper verification worker",
   "main": "src/worker.js",
   "dependencies": {
-    "capjs-core": "^0.0.16"
+    "capjs-core": "^0.1.7"
   }
 }
