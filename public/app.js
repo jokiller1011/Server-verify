@@ -1,8 +1,8 @@
-let turnstileToken = null;
+let capToken = null;
 
-// Called by Cloudflare when the checkbox is solved
-window.onTurnstileSuccess = function(token) {
-    turnstileToken = token;
+// The real Cap widget triggers this function when solved
+window.onCapSolve = function(event) {
+    capToken = event.detail.token;
     document.getElementById('submit-btn').disabled = false;
 };
 
@@ -10,7 +10,6 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     const username = document.getElementById('username').value.trim();
     const errorBox = document.getElementById('error-box');
     
-    // Hide previous errors
     errorBox.classList.add('hidden');
     errorBox.innerText = '';
 
@@ -19,7 +18,7 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
         errorBox.classList.remove('hidden');
         return;
     }
-    if (!turnstileToken) {
+    if (!capToken) {
         errorBox.innerText = "Please complete the CAPTCHA.";
         errorBox.classList.remove('hidden');
         return;
@@ -30,11 +29,11 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     btn.innerText = "Verifying...";
 
     try {
-        // This calls the Cloudflare Worker Function below
+        // Send the real Cap token to our Worker
         const response = await fetch('/api/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, turnstileToken })
+            body: JSON.stringify({ username, capToken })
         });
 
         const data = await response.json();
@@ -43,7 +42,6 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
             document.getElementById('form-step').classList.add('hidden');
             document.getElementById('success-step').classList.remove('hidden');
         } else {
-            // Show the actual error from the backend!
             errorBox.innerText = data.message || "Unknown error occurred.";
             errorBox.classList.remove('hidden');
             btn.disabled = false;
