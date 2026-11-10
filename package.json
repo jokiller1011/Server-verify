@@ -1,0 +1,9 @@
+{
+  "name": "server-verify",
+  "version": "1.0.0",
+  "description": "Vesper verification worker",
+  "main": "src/worker.js",
+  "dependencies": {
+    "capjs-core": "^0.0.16"
+  }
+}
