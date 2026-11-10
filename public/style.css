@@ -45,7 +45,6 @@ input:focus { outline: none; border-color: var(--accent); }
     margin-bottom: 1.5rem;
     min-height: 80px;
 }
-
 /* Cap Widget Dark Theme Custom Properties */
 cap-widget {
     --cap-background: #1e232d;
@@ -58,7 +57,6 @@ cap-widget {
     --cap-spinner-color: #3b82f6;
     --cap-spinner-background-color: #0f1115;
 }
-
 button#submit-btn {
     width: 100%;
     padding: 12px;
