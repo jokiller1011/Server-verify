@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vesper Server Verification</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Load the REAL Cap widget from the official CDN -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/cap-widget"></script>
 </head>
 <body>
     <div class="card" id="form-step">
@@ -14,18 +12,9 @@
         <p>Please enter your username to verify.</p>
         <input type="text" id="username" placeholder="Enter your username" required>
         
-        <div class="captcha-container">
-            <!-- The official Cap widget element -->
-            <cap-widget 
-                id="cap-widget"
-                data-cap-api-endpoint="/api/cap/"
-                onsolve="onCapSolve(event)"
-                data-cap-theme="dark">
-            </cap-widget>
-        </div>
-
+        <!-- The CAPTCHA is now solved automatically when you click Verify -->
         <div id="error-box" class="error-box hidden"></div>
-        <button id="submit-btn" disabled>Verify</button>
+        <button id="submit-btn">Verify</button>
     </div>
 
     <div class="card hidden" id="success-step">
