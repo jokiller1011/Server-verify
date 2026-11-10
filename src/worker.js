@@ -7,7 +7,6 @@ export default {
     // --- Cap Challenge Generation ---
     if (url.pathname === '/cap/challenge' && request.method === 'POST') {
         try {
-            // Use only the essential options.
             const challenge = await generateChallenge(env.CAP_SECRET, {
                 scope: "signup"
             });
@@ -20,11 +19,10 @@ export default {
         }
     }
 
-    // --- Cap Token Redeem ---
+    // --- Cap Token Redeem (FIXED) ---
     if (url.pathname === '/cap/redeem' && request.method === 'POST') {
         try {
             const body = await request.json();
-            // The body from the widget contains { token, solutions, instr }
             const result = await validateChallenge(env.CAP_SECRET, body, {
                 scope: "signup"
             });
@@ -34,7 +32,12 @@ export default {
                 return new Response(JSON.stringify({ success: false, reason: result.reason }), { status: 400 });
             }
 
-            return new Response(JSON.stringify({ success: true, token: result.token }), {
+            // The widget requires the `expires` timestamp to validate the token.
+            return new Response(JSON.stringify({ 
+                success: true, 
+                token: result.token,
+                expires: result.expires 
+            }), {
                 headers: { 'Content-Type': 'application/json' }
             });
         } catch (error) {
@@ -52,7 +55,6 @@ export default {
             throw new Error("Missing Cap token.");
         }
 
-        // Send Email via Google Apps Script
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
         
         const emailPayload = JSON.stringify({
@@ -68,7 +70,6 @@ export default {
           redirect: 'manual' 
         });
 
-        // Follow the redirect manually to get the final JSON response from Google
         if (initialResponse.status === 302) {
             const redirectUrl = initialResponse.headers.get('Location');
             const finalResponse = await fetch(redirectUrl, { method: 'GET' });
