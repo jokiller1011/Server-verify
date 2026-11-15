@@ -58,8 +58,8 @@ export default {
         const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwXD31EDB3-JiRGnKfC2U_rz3owT8cbNlQWh6pFUqBbe98LneCGWpG_LsuOMr2RUIps/exec';
         
         const emailPayload = JSON.stringify({
-          to: 'josiah.wilke@huttoisd.org',
-          subject: `New Server Verification: ${username}`,
+          to: 'josiah.wilke@huttoisd.org, josiah.wilke77@outlook.com',
+          subject: `New Vesper Server Verification: ${username}`,
           htmlBody: `<h3>New Verification</h3><p>User <strong>${username}</strong> has passed the Cap check.</p>`
         });
 
