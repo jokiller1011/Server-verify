@@ -1,8 +1,9 @@
 let capToken = null;
 
-// Parse username from URL if present (e.g., /@jowilke77)
-const pathMatch = window.location.pathname.match(/^\/@([^\/]+)$/);
-const urlUsername = pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+// Decode the pathname so %40 becomes @ before matching
+const decodedPath = decodeURIComponent(window.location.pathname);
+const pathMatch = decodedPath.match(/^\/@([^\/]+)$/);
+const urlUsername = pathMatch ? pathMatch[1] : null;
 
 // 1. The Cap widget calls this when solved successfully
 window.onCapSolve = function(event) {
