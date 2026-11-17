@@ -1,12 +1,19 @@
 :root {
     --bg-color: #0f1115;
-    --card-bg: #1e232d;
+    --card-bg: rgba(30, 35, 45, 0.75); /* Semi-transparent glass card */
     --text-main: #e2e8f0;
     --text-muted: #94a3b8;
     --accent: #3b82f6;
 }
+
 body {
-    background-color: var(--bg-color);
+    /* Updated background image */
+    background-image: url('background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
@@ -15,23 +22,39 @@ body {
     height: 100vh;
     margin: 0;
 }
+
 .card {
     background-color: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 2.5rem;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
     width: 100%;
     max-width: 420px;
     text-align: center;
-    border: 1px solid #2d3748;
+    border: 1px solid rgba(45, 55, 72, 0.5);
 }
+
+/* Logo styling: square shape, no circle */
+.profile-icon {
+    width: 100px;
+    height: 100px;
+    object-fit: contain; /* Keeps the logo's natural square aspect ratio */
+    margin-bottom: 1rem;
+    border-radius: 0; /* Ensures no rounding */
+    border: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4); /* Optional subtle shadow */
+}
+
 h1 { margin-top: 0; font-size: 1.5rem; }
 p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
 input {
     width: 100%;
     padding: 12px;
     margin-bottom: 1.5rem;
-    background-color: #0f1115;
+    background-color: rgba(15, 17, 21, 0.8);
     border: 1px solid #334155;
     border-radius: 6px;
     color: white;
@@ -39,24 +62,27 @@ input {
     box-sizing: border-box;
 }
 input:focus { outline: none; border-color: var(--accent); }
+
 .captcha-container {
     display: flex;
     justify-content: center;
     margin-bottom: 1.5rem;
     min-height: 80px;
 }
-/* Cap Widget Dark Theme Custom Properties */
+
+/* Cap Widget: Opaque background so it stands out */
 cap-widget {
-    --cap-background: #1e232d;
-    --cap-border-color: #334155;
+    --cap-background: rgba(15, 17, 21, 0.95); 
+    --cap-border-color: #334155; 
     --cap-border-radius: 8px;
     --cap-color: #e2e8f0;
     --cap-checkbox-background: #0f1115;
-    --cap-checkbox-border: 1px solid #334155;
+    --cap-checkbox-border: 1px solid #475569;
     --cap-checkbox-border-radius: 4px;
     --cap-spinner-color: #3b82f6;
     --cap-spinner-background-color: #0f1115;
 }
+
 button#submit-btn {
     width: 100%;
     padding: 12px;
@@ -71,13 +97,16 @@ button#submit-btn {
 }
 button#submit-btn:disabled { background-color: #334155; cursor: not-allowed; }
 button#submit-btn:hover:not(:disabled) { background-color: #2563eb; }
+
 .hidden { display: none !important; }
+
 .success-text {
     color: #10b981;
     font-weight: bold;
     font-size: 1.2rem;
     margin-bottom: 1rem;
 }
+
 .error-box {
     color: #ef4444;
     background-color: rgba(239, 68, 68, 0.1);
@@ -90,4 +119,20 @@ button#submit-btn:hover:not(:disabled) { background-color: #2563eb; }
     word-break: break-word;
     max-height: 150px;
     overflow-y: auto;
+}
+
+/* GitHub Logo Positioning */
+.github-link {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    color: #e2e8f0;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 1000;
+}
+
+.github-link:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
