@@ -1,11 +1,14 @@
 let capToken = null;
 
+// Parse username from URL if present (e.g., /@jowilke77)
+const pathMatch = window.location.pathname.match(/^\/@([^\/]+)$/);
+const urlUsername = pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+
 // 1. The Cap widget calls this when solved successfully
 window.onCapSolve = function(event) {
     capToken = event.detail.token;
     document.getElementById('submit-btn').disabled = false;
     
-    // Hide error box if it was previously shown due to a CAPTCHA error
     const errorBox = document.getElementById('error-box');
     if (errorBox) {
         errorBox.classList.add('hidden');
@@ -13,8 +16,21 @@ window.onCapSolve = function(event) {
     }
 };
 
-// 2. Listen for the widget to throw an error and display the exact code
+// 2. Handle UI based on URL username on load
 document.addEventListener('DOMContentLoaded', () => {
+    if (urlUsername) {
+        const input = document.getElementById('username');
+        const instruction = document.getElementById('instruction-text');
+        const loggedInMsg = document.getElementById('logged-in-message');
+        const loggedInUser = document.getElementById('logged-in-username');
+
+        if (input) input.classList.add('hidden');
+        if (instruction) instruction.classList.add('hidden');
+        if (loggedInMsg) loggedInMsg.classList.remove('hidden');
+        if (loggedInUser) loggedInUser.textContent = `@${urlUsername}`;
+    }
+
+    // Cap widget error listener
     const widget = document.getElementById('cap-widget');
     if (widget) {
         widget.addEventListener('error', (event) => {
@@ -32,12 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 3. Handle the form submission
 document.getElementById('submit-btn').addEventListener('click', async () => {
-    const username = document.getElementById('username').value.trim();
     const errorBox = document.getElementById('error-box');
     const btn = document.getElementById('submit-btn');
     
     errorBox.classList.add('hidden');
     errorBox.innerText = '';
+
+    // Determine username: prefer URL username, otherwise from input
+    let username;
+    if (urlUsername) {
+        username = urlUsername;
+    } else {
+        const input = document.getElementById('username');
+        username = input ? input.value.trim() : '';
+    }
 
     if (!username) {
         errorBox.innerText = "Please enter a username.";
